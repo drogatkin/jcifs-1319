@@ -1,0 +1,115 @@
+# a script example to build Java project 
+
+project =jcifs
+"build_directory" = ./build
+source_directory ="src"
+doc_directory=doc
+version=1.3.19
+build_file ="${project}-${version}.jar"
+ domain ="jcifs"
+servlet jar=${build_directory}/.temp_repo/javax.servlet-api-3.1.0.jar
+java version=8
+
+
+target clean {
+    dependency {true}
+    exec rm  (
+        -r,
+        ${build_directory}/${domain},
+        ${build_directory}/${build_file}
+    )
+}
+
+
+target dep_dir {
+  dependency {
+     eq {
+        timestamp(${build_directory}${~separator~}.temp_repo)
+     }
+   }
+   display(Dir ${build_directory}${~separator~}.temp_repo)
+   exec mkdir (
+        -p,
+        ${build_directory}${~separator~}.temp_repo
+   )
+} 
+
+target get_deps {
+  dependency {
+      eq {
+        timestamp(servlet jar)
+       }
+   }
+   dependency {
+          target(dep_dir)
+   }
+   {
+    if {
+       eq {
+          timestamp(servlet jar)
+       }
+       then {
+         servlet_api="javax.servlet:javax.servlet-api:3.1.0":rep-maven
+         as_url(servlet_api)
+         exec wget (
+           ~~, 
+           -O,
+           servlet jar
+         )
+      }
+   }
+  }
+}
+
+target compile:. {
+   dependency {
+       or {
+              newerthan(${source_directory}/.java,${build_directory}/.class)
+       }
+   }
+   dependency {
+          target(get_deps)
+   }
+   {
+        display(Compiling Java src ...)
+       newerthan(${source_directory}/.java,${build_directory}/.class)
+       assign(main src,~~)
+       exec javac (
+         -d,
+         ${build_directory},
+        -source,
+         java version,
+       -target,
+         java version,
+        -cp,
+         ${build_directory}${~path_separator~}${servlet jar},
+         main src
+
+       )     
+      if {
+         neq(${~~}, 0)
+         then {
+            panic("Compilation error(s)")
+         }
+     }
+   }
+}
+
+target jar {
+      dependency {
+         anynewer(${build_directory}/${domain}/*,${build_directory}/${build_file})
+      }
+      dependency {
+          target(compile)
+      }
+     
+     {    display(Jarring ${build_file} ...)
+          exec jar (
+            -cf,
+            ${build_directory}/${build_file},
+            -C,
+            ${build_directory},
+            ${domain}
+          )
+     }
+}

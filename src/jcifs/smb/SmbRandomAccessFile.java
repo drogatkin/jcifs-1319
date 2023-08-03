@@ -105,7 +105,7 @@ public class SmbRandomAccessFile implements DataOutput, DataInput {
             count = this.read( b, off + n, len - n );
             if( count < 0 ) throw new SmbException( "EOF" );
             n += count;
-            fp += count;
+            //fp += count;
         } while( n < len );
     }
     public int skipBytes( int n ) throws SmbException {

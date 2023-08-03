@@ -1,4 +1,5 @@
-# a script example to build Java project 
+# the project building  script 
+# use RustBee to build, see https://github.com/drogatkin/rust_utilities
 
 project =jcifs
 "build_directory" = ./build
